@@ -9,4 +9,5 @@ requests
 langchain-community 
 educhain
 plotly
-
+sympy
+latex2sympy
