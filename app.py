@@ -90,7 +90,11 @@ elif page == "Homework Helper":
 
 if page == "Quiz Generator":
     st.header("🧠 Quiz Generator")
-    subject = st.selectbox("Select a subject", ["Math", "Science", "History", "Literature", "Computer Science"])
+    subject = st.selectbox("Select a subject", ["Math", "Science", "History", "Literature", "Computer Science", "Custom"])
+    
+    if subject == "Custom":
+        subject = st.text_input("Enter your custom topic:")
+    
     num_questions = st.slider("Number of questions", 1, 10, 5)
     difficulty = st.select_slider("Select difficulty level", options=["Easy", "Medium", "Hard"])
 
@@ -98,44 +102,33 @@ if page == "Quiz Generator":
         quiz = generate_mcq(
             topic=subject,
             num=num_questions,
-            llm=None,
+            llm=llm,  # Pass the llm object here
             response_model=MCQList,
             prompt_template=f"Create a {num_questions}-question {difficulty} quiz on {subject}.\nFor each question, provide:\n1. The question\n2. Four multiple-choice options (A, B, C, D)\n3. The correct answer (A, B, C, or D)\n4. A brief explanation of the correct answer",
         )
 
         quiz_data = quiz.questions
-        user_answers = {}
-
+        
         for i, q in enumerate(quiz_data, 1):
             question = q.question
-            options = [f"{option}" for option in q.options]
+            options = q.options
             correct_answer = q.correct_answer
             explanation = q.explanation
 
             st.subheader(f"Question {i}")
             st.write(question)
 
-            # Shuffle the options
-            shuffled_options = random.sample(options, len(options))
+            # Create a unique key for each radio button group
+            user_answer = st.radio("Select your answer:", options, key=f"q{i}")
 
-            with st.form(key=f"form_{i}"):
-                # Retrieve the user's previous answer (if any)
-                user_answer = user_answers.get(f"q{i}", "")
-
-                # Display the radio buttons with the user's previous answer selected
-                user_answer = st.radio("Select your answer:", shuffled_options, index=shuffled_options.index(user_answer) if user_answer else 0)
-
-                check_answer_button = st.form_submit_button("Check Answer")
-
-            if check_answer_button:
+            if st.button("Check Answer", key=f"check_{i}"):
                 if user_answer == correct_answer:
                     st.success("Correct!")
                 else:
                     st.error(f"Incorrect. The correct answer is {correct_answer}")
-                st.info(explanation)
+                st.info(f"Explanation: {explanation}")
 
-                # Store the user's answer in the dictionary
-                user_answers[f"q{i}"] = user_answer
+        st.button("Submit Quiz")
 elif page == "Study Planner":
     st.header("📅 Study Schedule Planner")
     subjects = st.multiselect("Select your subjects", ["Math", "Science", "History", "Literature", "Computer Science"])
