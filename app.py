@@ -263,17 +263,17 @@ elif page == "Flashcard Creator":
         For each flashcard, provide:
         1. The front side (question or term)
         2. The back side (answer or definition)
-        Separate each flashcard with a newline.
+        Separate each flashcard with a newline, and use a pipe (|) to separate the front and back of each card.
         """
         flashcards = get_ai_response(prompt)
-        cards = flashcards.split('\n\n')
+        cards = flashcards.split('\n')
 
         for i, card in enumerate(cards, 1):
-            card_parts = card.split('\n')
+            card_parts = card.split('|')
             if len(card_parts) == 2:
                 front, back = card_parts
-                with st.expander(f"Flashcard {i} - {front}"):
-                    st.success(back)
+                with st.expander(f"Flashcard {i} - {front.strip()}"):
+                    st.success(back.strip())
 
     st.subheader("Create Custom Flashcard")
     custom_front = st.text_input("Front of the card (question or term):")
