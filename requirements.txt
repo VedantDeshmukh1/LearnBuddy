@@ -10,4 +10,4 @@ langchain-community
 educhain
 plotly
 sympy
-latex2sympy
+latex2sympy2
