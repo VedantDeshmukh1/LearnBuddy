@@ -97,59 +97,6 @@ elif page == "Homework Helper":
         st.plotly_chart(fig)
 
 
-# if page == "Quiz Generator":
-#     st.header("🧠 Quiz Generator")
-#     subject = st.selectbox("Select a subject", ["Math", "Science", "History", "Literature", "Computer Science", "Custom"])
-    
-#     if subject == "Custom":
-#         subject = st.text_input("Enter your custom topic:")
-        
-#     num_questions = st.slider("Number of questions", 1, 10, 5)
-#     difficulty = st.select_slider("Select difficulty level", options=["Easy", "Medium", "Hard"])
-
-#     if st.button("Generate Quiz"):
-#         quiz = generate_mcq(
-#             topic=subject,
-#             num=num_questions,
-#             llm=None,
-#             response_model=MCQList,
-#             prompt_template=f"Create a {num_questions}-question {difficulty} quiz on {subject}.\nFor each question, provide:\n1. The question\n2. Four multiple-choice options (A, B, C, D)\n3. The correct answer (A, B, C, or D)\n4. A brief explanation of the correct answer",
-#         )
-
-#         quiz_data = quiz.questions
-#         user_answers = {}
-
-#         for i, q in enumerate(quiz_data, 1):
-#             question = q.question
-#             options = [f"{option}" for option in q.options]
-#             correct_answer = q.correct_answer
-#             explanation = q.explanation
-
-#             st.subheader(f"Question {i}")
-#             st.write(question)
-
-#             # Shuffle the options
-#             shuffled_options = random.sample(options, len(options))
-
-#             with st.form(key=f"form_{i}"):
-#                 # Retrieve the user's previous answer (if any)
-#                 user_answer = user_answers.get(f"q{i}", "")
-
-#                 # Display the radio buttons with the user's previous answer selected
-#                 user_answer = st.radio("Select your answer:", shuffled_options, index=shuffled_options.index(user_answer) if user_answer else 0)
-
-#                 check_answer_button = st.form_submit_button("Check Answer")
-
-#             if check_answer_button:
-#                 if user_answer == correct_answer:
-#                     st.success("Correct!")
-#                 else:
-#                     st.error(f"Incorrect. The correct answer is {correct_answer}")
-#                 st.info(explanation)
-
-#                 # Store the user's answer in the dictionary
-#                 user_answers[f"q{i}"] = user_answer
-
 if page == "Quiz Generator":
     st.header("🧠 Quiz Generator")
     subject = st.selectbox("Select a subject", ["Math", "Science", "History", "Literature", "Computer Science", "Custom"])
@@ -170,6 +117,7 @@ if page == "Quiz Generator":
         )
 
         quiz_data = quiz.questions
+        user_answers = {}
 
         for i, q in enumerate(quiz_data, 1):
             question = q.question
@@ -183,25 +131,25 @@ if page == "Quiz Generator":
             # Shuffle the options
             shuffled_options = random.sample(options, len(options))
 
-            # Initialize session state variables for user answer and check flag
-            if f"q{i}_answer" not in st.session_state:
-                st.session_state[f"q{i}_answer"] = ""
-            if f"q{i}_checked" not in st.session_state:
-                st.session_state[f"q{i}_checked"] = False
+            with st.form(key=f"form_{i}"):
+                # Retrieve the user's previous answer (if any)
+                user_answer = user_answers.get(f"q{i}", "")
 
-            user_answer = st.radio("Select your answer:", shuffled_options, key=f"q{i}_radio")
+                # Display the radio buttons with the user's previous answer selected
+                user_answer = st.radio("Select your answer:", shuffled_options, index=shuffled_options.index(user_answer) if user_answer else 0)
 
-            if st.button("Check Answer", key=f"q{i}_check"):
-                st.session_state[f"q{i}_answer"] = user_answer
-                st.session_state[f"q{i}_checked"] = True
+                check_answer_button = st.form_submit_button("Check Answer")
 
-            if st.session_state[f"q{i}_checked"]:
-                if st.session_state[f"q{i}_answer"] == correct_answer:
+            if check_answer_button:
+                if user_answer == correct_answer:
                     st.success("Correct!")
                 else:
                     st.error(f"Incorrect. The correct answer is {correct_answer}")
                 st.info(explanation)
-        
+
+                # Store the user's answer in the dictionary
+                user_answers[f"q{i}"] = user_answer
+
         
 elif page == "Study Planner":
     st.header("📅 Study Schedule Planner")
