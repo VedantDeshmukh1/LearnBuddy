@@ -10,6 +10,8 @@ from datetime import datetime, timedelta
 from educhain.qna_engine import generate_mcq
 from educhain.models import MCQList
 import os
+import sympy
+from latex2sympy2 import latex2sympy
 
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 os.environ["OPENAI_API_KEY"] = openai_api_key
@@ -98,37 +100,59 @@ if page == "Quiz Generator":
     num_questions = st.slider("Number of questions", 1, 10, 5)
     difficulty = st.select_slider("Select difficulty level", options=["Easy", "Medium", "Hard"])
 
+    if 'quiz_generated' not in st.session_state:
+        st.session_state.quiz_generated = False
+        st.session_state.quiz_data = None
+
     if st.button("Generate Quiz"):
         quiz = generate_mcq(
             topic=subject,
             num=num_questions,
-            llm=llm,  # Pass the llm object here
+            llm=llm,
             response_model=MCQList,
-            prompt_template=f"Create a {num_questions}-question {difficulty} quiz on {subject}.\nFor each question, provide:\n1. The question\n2. Four multiple-choice options (A, B, C, D)\n3. The correct answer (A, B, C, or D)\n4. A brief explanation of the correct answer",
+            prompt_template=f"Create a {num_questions}-question {difficulty} quiz on {subject}.\nFor each question, provide:\n1. The question\n2. Four multiple-choice options (A, B, C, D)\n3. The correct answer (A, B, C, or D)\n4. A brief explanation of the correct answer\nIf the question involves mathematical equations, use LaTeX format.",
         )
 
-        quiz_data = quiz.questions
-        
-        for i, q in enumerate(quiz_data, 1):
+        st.session_state.quiz_data = quiz.questions
+        st.session_state.quiz_generated = True
+        st.session_state.user_answers = {}
+        st.session_state.checked_answers = set()
+
+    if st.session_state.quiz_generated:
+        for i, q in enumerate(st.session_state.quiz_data, 1):
             question = q.question
             options = q.options
             correct_answer = q.correct_answer
             explanation = q.explanation
 
             st.subheader(f"Question {i}")
-            st.write(question)
+            # Use st.latex for rendering LaTeX equations
+            st.latex(question)
 
             # Create a unique key for each radio button group
             user_answer = st.radio("Select your answer:", options, key=f"q{i}")
+            st.session_state.user_answers[i] = user_answer
 
             if st.button("Check Answer", key=f"check_{i}"):
-                if user_answer == correct_answer:
+                st.session_state.checked_answers.add(i)
+
+            if i in st.session_state.checked_answers:
+                if st.session_state.user_answers[i] == correct_answer:
                     st.success("Correct!")
                 else:
                     st.error(f"Incorrect. The correct answer is {correct_answer}")
                 st.info(f"Explanation: {explanation}")
 
-        st.button("Submit Quiz")
+        if st.button("Submit Quiz"):
+            score = sum(1 for i, q in enumerate(st.session_state.quiz_data, 1) 
+                        if st.session_state.user_answers.get(i) == q.correct_answer)
+            st.success(f"Quiz submitted! Your score: {score}/{len(st.session_state.quiz_data)}")
+
+def parse_math_equation(equation):
+    try:
+        return latex2sympy(equation)
+    except:
+        return equation
 elif page == "Study Planner":
     st.header("📅 Study Schedule Planner")
     subjects = st.multiselect("Select your subjects", ["Math", "Science", "History", "Literature", "Computer Science"])
