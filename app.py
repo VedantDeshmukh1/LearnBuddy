@@ -34,6 +34,12 @@ def get_ai_response(prompt_template, **kwargs):
     else:
         response = chain.run({"prompt": prompt_template})
     return response
+    
+def parse_math_equation(equation):
+            try:
+                return latex2sympy(equation)
+            except:
+                return equation
 
 if page == "Subject Tutor":
     st.header("🧑‍🏫 Subject-Specific Tutoring")
@@ -148,11 +154,7 @@ if page == "Quiz Generator":
                         if st.session_state.user_answers.get(i) == q.correct_answer)
             st.success(f"Quiz submitted! Your score: {score}/{len(st.session_state.quiz_data)}")
 
-        def parse_math_equation(equation):
-            try:
-                return latex2sympy(equation)
-            except:
-                return equation
+        
         
 elif page == "Study Planner":
     st.header("📅 Study Schedule Planner")
