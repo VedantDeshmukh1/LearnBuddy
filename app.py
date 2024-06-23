@@ -96,63 +96,60 @@ elif page == "Homework Helper":
         fig.update_layout(title="Solution Breakdown")
         st.plotly_chart(fig)
 
+
 if page == "Quiz Generator":
     st.header("🧠 Quiz Generator")
     subject = st.selectbox("Select a subject", ["Math", "Science", "History", "Literature", "Computer Science", "Custom"])
     
     if subject == "Custom":
         subject = st.text_input("Enter your custom topic:")
-    
+        
     num_questions = st.slider("Number of questions", 1, 10, 5)
     difficulty = st.select_slider("Select difficulty level", options=["Easy", "Medium", "Hard"])
-
-    if 'quiz_generated' not in st.session_state:
-        st.session_state.quiz_generated = False
-        st.session_state.quiz_data = None
 
     if st.button("Generate Quiz"):
         quiz = generate_mcq(
             topic=subject,
             num=num_questions,
-            llm=llm,
+            llm=None,
             response_model=MCQList,
-            prompt_template=f"Create a {num_questions}-question {difficulty} quiz on {subject}.\nFor each question, provide:\n1. The question\n2. Four multiple-choice options (A, B, C, D)\n3. The correct answer (A, B, C, or D)\n4. A brief explanation of the correct answer\nIf the question involves mathematical equations, use LaTeX format.",
+            prompt_template=f"Create a {num_questions}-question {difficulty} quiz on {subject}.\nFor each question, provide:\n1. The question\n2. Four multiple-choice options (A, B, C, D)\n3. The correct answer (A, B, C, or D)\n4. A brief explanation of the correct answer",
         )
 
-        st.session_state.quiz_data = quiz.questions
-        st.session_state.quiz_generated = True
-        st.session_state.user_answers = {}
-        st.session_state.checked_answers = set()
+        quiz_data = quiz.questions
+        user_answers = {}
 
-    if st.session_state.quiz_generated:
-        for i, q in enumerate(st.session_state.quiz_data, 1):
+        for i, q in enumerate(quiz_data, 1):
             question = q.question
-            options = q.options
+            options = [f"{option}" for option in q.options]
             correct_answer = q.correct_answer
             explanation = q.explanation
 
             st.subheader(f"Question {i}")
-            # Use st.latex for rendering LaTeX equations
-            st.latex(question)
+            st.write(question)
 
-            # Create a unique key for each radio button group
-            user_answer = st.radio("Select your answer:", options, key=f"q{i}")
-            st.session_state.user_answers[i] = user_answer
+            # Shuffle the options
+            shuffled_options = random.sample(options, len(options))
 
-            if st.button("Check Answer", key=f"check_{i}"):
-                st.session_state.checked_answers.add(i)
+            with st.form(key=f"form_{i}"):
+                # Retrieve the user's previous answer (if any)
+                user_answer = user_answers.get(f"q{i}", "")
 
-            if i in st.session_state.checked_answers:
-                if st.session_state.user_answers[i] == correct_answer:
+                # Display the radio buttons with the user's previous answer selected
+                user_answer = st.radio("Select your answer:", shuffled_options, index=shuffled_options.index(user_answer) if user_answer else 0)
+
+                check_answer_button = st.form_submit_button("Check Answer")
+
+            if check_answer_button:
+                if user_answer == correct_answer:
                     st.success("Correct!")
                 else:
                     st.error(f"Incorrect. The correct answer is {correct_answer}")
-                st.info(f"Explanation: {explanation}")
+                st.info(explanation)
 
-        if st.button("Submit Quiz"):
-            score = sum(1 for i, q in enumerate(st.session_state.quiz_data, 1) 
-                        if st.session_state.user_answers.get(i) == q.correct_answer)
-            st.success(f"Quiz submitted! Your score: {score}/{len(st.session_state.quiz_data)}")
+                # Store the user's answer in the dictionary
+                user_answers[f"q{i}"] = user_answer
+
 
         
         
