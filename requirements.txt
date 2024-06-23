@@ -8,3 +8,4 @@ Pillow
 requests
 langchain-community 
 educhain
+plotly
