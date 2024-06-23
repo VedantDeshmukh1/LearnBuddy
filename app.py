@@ -153,6 +153,7 @@ def parse_math_equation(equation):
         return latex2sympy(equation)
     except:
         return equation
+        
 elif page == "Study Planner":
     st.header("📅 Study Schedule Planner")
     subjects = st.multiselect("Select your subjects", ["Math", "Science", "History", "Literature", "Computer Science"])
