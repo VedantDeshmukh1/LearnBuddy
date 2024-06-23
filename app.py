@@ -9,9 +9,10 @@ import pandas as pd
 from datetime import datetime, timedelta
 from educhain.qna_engine import generate_mcq
 from educhain.models import MCQList
+import os
 
-
-openai_api_key = st.secrets('OPENAI_API_KEY')
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+os.environ["OPENAI_API_KEY"] = openai_api_key
 # Set up OpenAI API (replace with your actual API key)
 llm = ChatOpenAI(model = 'gpt-4o', api_key = openai_api_key )
 
