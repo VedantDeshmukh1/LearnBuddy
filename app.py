@@ -148,11 +148,11 @@ if page == "Quiz Generator":
                         if st.session_state.user_answers.get(i) == q.correct_answer)
             st.success(f"Quiz submitted! Your score: {score}/{len(st.session_state.quiz_data)}")
 
-def parse_math_equation(equation):
-    try:
-        return latex2sympy(equation)
-    except:
-        return equation
+        def parse_math_equation(equation):
+            try:
+                return latex2sympy(equation)
+            except:
+                return equation
         
 elif page == "Study Planner":
     st.header("📅 Study Schedule Planner")
