@@ -9,4 +9,4 @@ requests
 langchain-community 
 educhain
 plotly
--U langchain-community
+
